@@ -6,7 +6,7 @@
  * Copyright (c) 2020 Verizon
  */
 
-import { OpenAPIV2 } from 'openapi-types';
+import { OpenAPIV2, OpenAPIV3 } from 'openapi-types';
 
 export type Property = {
   format?: string;
@@ -21,48 +21,46 @@ export type Properties = Record<string, Property>;
 
 export type Rule = (fieldName: string, properties: Definition) => string;
 
-export type Definition = OpenAPIV2.DefinitionsObject;
+export type Definitions =
+  | OpenAPIV2.DefinitionsObject
+  | Record<string, OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject>
+  | undefined;
+export type Definition = OpenAPIV2.DefinitionsObject | OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject;
 
-function hasMetadata(fieldName: string, definition: Definition, metadataName: string): boolean {
-  return definition.properties[fieldName].hasOwnProperty(metadataName);
+export type SchemaProperty = OpenAPIV2.SchemaObject | OpenAPIV3.SchemaObject;
+
+function hasMetadata(fieldName: string, property: SchemaProperty, metadataName: string): boolean {
+  return property.hasOwnProperty(metadataName);
 }
 
-function abstractRule(fieldName: string, definition: Definition, ruleName: keyof Property): string {
-  return hasMetadata(fieldName, definition, ruleName)
-    ? `Validators.${ruleName}(${definition.properties[fieldName][ruleName]})`
-    : '';
+function abstractRule(fieldName: string, property: SchemaProperty, ruleName: keyof Property): string {
+  return hasMetadata(fieldName, property, ruleName) ? `Validators.${ruleName}(${property[ruleName]})` : '';
 }
 
-export function requiredRule(fieldName: string, definition: Definition): string {
-  return definition.required && definition.required.includes(fieldName) ? `Validators.required` : '';
+export function requiredRule(fieldName: string, property: SchemaProperty): string {
+  return property.required?.includes(fieldName) ? `Validators.required` : '';
 }
 
-export function patternRule(fieldName: string, definition: Definition): string {
-  return hasMetadata(fieldName, definition, 'pattern')
-    ? `Validators.pattern(/${definition.properties[fieldName]['pattern']}/)`
-    : '';
+export function patternRule(fieldName: string, property: SchemaProperty): string {
+  return hasMetadata(fieldName, property, 'pattern') ? `Validators.pattern(/${property['pattern']}/)` : '';
 }
 
-export function minLengthRule(fieldName: string, definition: Definition): string {
-  return abstractRule(fieldName, definition, 'minLength');
+export function minLengthRule(fieldName: string, property: SchemaProperty): string {
+  return abstractRule(fieldName, property, 'minLength');
 }
 
-export function maxLengthRule(fieldName: string, definition: Definition): string {
-  return abstractRule(fieldName, definition, 'maxLength');
+export function maxLengthRule(fieldName: string, property: SchemaProperty): string {
+  return abstractRule(fieldName, property, 'maxLength');
 }
 
-export function emailRule(fieldName: string, definition: Definition): string {
-  return definition.properties[fieldName].format === 'email' ? `Validators.email` : '';
+export function emailRule(fieldName: string, property: SchemaProperty): string {
+  return property.format === 'email' ? `Validators.email` : '';
 }
 
-export function minimumRule(fieldName: string, definition: Definition): string {
-  return hasMetadata(fieldName, definition, 'minimum')
-    ? `Validators.min(${definition.properties[fieldName]['minimum']})`
-    : '';
+export function minimumRule(fieldName: string, property: SchemaProperty): string {
+  return hasMetadata(fieldName, property, 'minimum') ? `Validators.min(${property['minimum']})` : '';
 }
 
-export function maximumRule(fieldName: string, definition: Definition): string {
-  return hasMetadata(fieldName, definition, 'maximum')
-    ? `Validators.max(${definition.properties[fieldName]['maximum']})`
-    : '';
+export function maximumRule(fieldName: string, property: SchemaProperty): string {
+  return hasMetadata(fieldName, property, 'maximum') ? `Validators.max(${property['maximum']})` : '';
 }

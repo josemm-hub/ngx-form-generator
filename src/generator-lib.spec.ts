@@ -8,7 +8,7 @@
 
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types';
 import { makeForm, makeFileName, addRule, resetRules, loadSpec } from './generator-lib';
-import { Definition, Rule } from './rules';
+import { Rule, SchemaProperty } from './rules';
 
 describe('generator-lib ', () => {
   let spec: OpenAPI.Document;
@@ -27,7 +27,7 @@ describe('generator-lib ', () => {
               items: {
                 type: 'string',
                 minLength: 1,
-                maxLength: 5,
+                maxLength: 5
               }
             },
             barGroup: {
@@ -42,8 +42,8 @@ describe('generator-lib ', () => {
                 },
                 innerFoo: {
                   type: 'string',
-                  maxLength: 30,
-                },
+                  maxLength: 30
+                }
               }
             }
           }
@@ -111,10 +111,9 @@ describe('generator-lib ', () => {
               default: 'bar',
               minLength: 2
             }
-
           }
         }
-      }
+      };
 
       const result = makeForm(spec);
 
@@ -127,27 +126,26 @@ describe('generator-lib ', () => {
       dummyFoo: new FormControl('foo', [Validators.minLength(1)]),
       dummaryBar: new FormControl('bar', [Validators.minLength(2)])
     })
-  ])`)
-  })
+  ])`);
+    });
 
+    it('should create nested form group', () => {
+      const result = makeForm(spec);
 
-  it('should create nested form group', () => {
-    const result = makeForm(spec);
+      expect(result).toContain(`barGroup: new FormGroup({`);
+    });
 
-    expect(result).toContain(`barGroup: new FormGroup({`);
-  });
-
-  it('should create nested child control with validation', () => {
-    const result = makeForm(spec);
-    expect(result).toContain(`innerBar: new FormControl('bar', [
+    it('should create nested child control with validation', () => {
+      const result = makeForm(spec);
+      expect(result).toContain(`innerBar: new FormControl('bar', [
       Validators.required,
       Validators.minLength(2),
       Validators.maxLength(5)
     ]),`);
-    expect(result).toContain(`innerFoo: new FormControl(null, [Validators.maxLength(30)])`);
-  });
+      expect(result).toContain(`innerFoo: new FormControl(null, [Validators.maxLength(30)])`);
+    });
 
-  it('should create a deep nested form group with nested child control', () => {
+    it('should create a deep nested form group with nested child control', () => {
       (spec as any).definitions.foo.properties.barGroup.properties.dummyGroup = {
         type: 'object',
         required: ['dummyBar'],
@@ -229,8 +227,8 @@ describe('generator-lib openApi2', () => {
       (spec as any).definitions.foo.required = [];
     });
 
-    const bazRule: Rule = (fieldName: string, definition: Definition) => {
-      return definition.properties[fieldName].format === 'baz' ? `Validators.pattern(/baz/)` : '';
+    const bazRule: Rule = (fieldName: string, property: SchemaProperty) => {
+      return property.format === 'baz' ? `Validators.pattern(/baz/)` : '';
     };
 
     it('should generate an added rule', () => {
@@ -269,8 +267,8 @@ describe('generator-lib openApi3', () => {
       (spec as any).components.schemas.foo.required = [];
     });
 
-    const bazRule: Rule = (fieldName: string, definition: Definition) => {
-      return definition.properties[fieldName].format === 'baz' ? `Validators.pattern(/baz/)` : '';
+    const bazRule: Rule = (fieldName: string, property: SchemaProperty) => {
+      return property.format === 'baz' ? `Validators.pattern(/baz/)` : '';
     };
 
     it('should generate an added rule', () => {
