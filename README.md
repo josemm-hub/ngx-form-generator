@@ -1,3 +1,13 @@
+# Changes and Improvements over the Original
+
+## Fixes
+
+- Fixed the handling of the `properties` property when generating fields from the OpenAPI definition. Now, if `properties` is `undefined`, an empty array is returned, allowing the rest of the code to execute correctly.
+
+## Improvements
+
+- The form constant is now an arrow function. This allows the form to be reused without persisting its state between uses, as previously, being an object, the form state was retained.
+
 # Angular Form Generator
 
 Generates an Angular ReactiveForm from a Swagger or OpenAPI definition.
@@ -10,10 +20,10 @@ Validation rules should have a single source of truth. These rules should be exp
 
 ```bash
 # install locally in project
-npm install @verizonconnect/ngx-form-generator --save-dev
+npm install @jmm-devkit/ngx-form-generator --save-dev
 
 # install globally
-npm install @verizonconnect/ngx-form-generator -g
+npm install @jmm-devkit/ngx-form-generator -g
 ```
 
 ## CLI Usage
@@ -59,7 +69,7 @@ await main();
 ```typescript
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 
-export const addressModelForm = new FormGroup({
+export const addressModelForm = () => new FormGroup({
   firstName: new FormControl(null, [
     Validators.required,
     Validators.pattern(/^[a-zA-Z\'\s]+$/),

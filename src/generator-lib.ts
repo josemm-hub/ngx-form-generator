@@ -63,7 +63,7 @@ function makeField(fieldName: string, definition: Definition): string {
         properties: {
           dummy: itemDefinition
         }
-      }
+      };
       const value = 'default' in _dummyProps.properties.dummy ? `'${_dummyProps.properties.dummy.default}'` : null;
       for (let i = 1; i <= minItems; i++) {
         items.push(`new FormControl(${value}, [${makeFieldRules('dummy', _dummyProps)}])`);
@@ -88,6 +88,7 @@ function makeFieldsBody(definition: Definition): string[] {
 
     return allOfFieldsBody;
   }
+  if (!definition.properties) return [];
   const fields = Object.keys(definition.properties);
   const fieldsBody = fields.map(fieldName => makeField(fieldName, definition)).filter(item => item !== '');
 
@@ -97,7 +98,7 @@ function makeFieldsBody(definition: Definition): string[] {
 function makeDefinition(definitionName: string, definition: Definition): string {
   const fieldsBody = makeFieldsBody(definition);
   return `
-    export const ${camelcase(definitionName)}Form = new FormGroup({
+    export const ${camelcase(definitionName)}Form = () => new FormGroup({
       ${fieldsBody}
     });
     `;
