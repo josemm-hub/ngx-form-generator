@@ -62,7 +62,7 @@ describe('generator-lib ', () => {
     it('should create typescript file with an export for the definition', () => {
       const result = makeForm(spec);
 
-      expect(result).toContain(`export const fooForm = new FormGroup({`);
+      expect(result).toContain(`export const fooForm = () => new FormGroup({`);
     });
 
     it('should create a FormControl', () => {
@@ -138,10 +138,10 @@ describe('generator-lib ', () => {
     it('should create nested child control with validation', () => {
       const result = makeForm(spec);
       expect(result).toContain(`innerBar: new FormControl('bar', [
-      Validators.required,
-      Validators.minLength(2),
-      Validators.maxLength(5)
-    ]),`);
+              Validators.required,
+              Validators.minLength(2),
+              Validators.maxLength(5)
+            ]),`);
       expect(result).toContain(`innerFoo: new FormControl(null, [Validators.maxLength(30)])`);
     });
 
@@ -172,7 +172,7 @@ describe('generator-lib ', () => {
         Validators.minLength(3),
         Validators.maxLength(5)
       ])
-    })`);
+    }, [])`);
     });
   });
 

@@ -19,7 +19,7 @@ export type Property = {
 
 export type Properties = Record<string, Property>;
 
-export type Rule = (fieldName: string, properties: Definition) => string;
+export type Rule = (fieldName: string, properties: SchemaProperty, isRequired: boolean) => string;
 
 export type Definitions =
   | OpenAPIV2.DefinitionsObject
@@ -37,8 +37,8 @@ function abstractRule(fieldName: string, property: SchemaProperty, ruleName: key
   return hasMetadata(fieldName, property, ruleName) ? `Validators.${ruleName}(${property[ruleName]})` : '';
 }
 
-export function requiredRule(fieldName: string, property: SchemaProperty): string {
-  return property.required?.includes(fieldName) ? `Validators.required` : '';
+export function requiredRule(fieldName: string, property: SchemaProperty, isRequired: boolean): string {
+  return isRequired ? `Validators.required` : '';
 }
 
 export function patternRule(fieldName: string, property: SchemaProperty): string {

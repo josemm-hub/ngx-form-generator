@@ -29,13 +29,13 @@ describe('rules', () => {
     it('should add the required validator if the field is required', () => {
       property.required!.push('foo');
 
-      const result = requiredRule('foo', property);
+      const result = requiredRule('foo', property, true);
 
       expect(result).toEqual('Validators.required');
     });
 
     it('should should not add the required validator if the field is required', () => {
-      const result = requiredRule('foo', property);
+      const result = requiredRule('foo', property, false);
 
       expect(result).toBeFalsy();
     });
