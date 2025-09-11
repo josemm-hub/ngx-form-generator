@@ -80,22 +80,44 @@ function makeDefinition(definitionName: string, definition: Definition): string 
  * @returns An array of strings representing the form fields.
  */
 function makeFieldsBody(definition: Definition, depth: number): string[] {
-  if (!('properties' in definition) || !definition.properties || depth > 2) return [];
-  depth++;
-
   const fields: string[] = [];
 
-  Object.keys(definition.properties).forEach(fieldName => {
-    const field = makeField(
-      fieldName,
-      definition.properties?.[fieldName],
-      !!definition.required?.includes(fieldName),
-      depth
-    );
-    if (field !== '') {
-      fields.push(field);
-    }
-  });
+  if (depth > 2) return fields;
+  depth++;
+
+  const hasProperties = 'properties' in definition && definition.properties;
+  if (hasProperties && definition.properties) {
+    // Process each property in the definition
+    Object.keys(definition.properties).forEach(fieldName => {
+      const field = makeField(
+        fieldName,
+        definition.properties?.[fieldName],
+        !!definition.required?.includes(fieldName),
+        depth
+      );
+      if (field !== '') {
+        fields.push(field);
+      }
+    });
+  }
+
+  // Handle allOf by merging properties from referenced schemas
+  const hasAllOf = 'allOf' in definition && Array.isArray(definition.allOf);
+  if (hasAllOf && definition.allOf) {
+    definition.allOf.forEach((subSchema: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject) => {
+      // If the subSchema is a reference, resolve it from definitions
+      if ('$ref' in subSchema) {
+        const refName = subSchema.$ref.split('/').pop() as string;
+        const refSchema =
+          (definition as any).definitions?.[refName] || (definition as any).components?.schemas?.[refName];
+        if (refSchema) {
+          fields.push(...makeFieldsBody(refSchema, depth));
+        }
+      } else {
+        fields.push(...makeFieldsBody(subSchema, depth));
+      }
+    });
+  }
 
   return fields;
 }
