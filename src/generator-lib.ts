@@ -31,13 +31,17 @@ const NEEDED_IMPORTS = `import { FormGroup, FormControl, Validators, FormArray }
 
 let rules: Rule[] = [...DEFAULT_RULES];
 
+let MAX_DEPTH = 2;
+
 /**
  * Generates Angular ReactiveForms from an OpenAPI v2 or v3 spec.
  * @param spec - The OpenAPI document.
+ * @param maxDepth - The maximum depth of the generated forms.
  * @returns A string representing the generated forms.
  */
-export function makeForm(spec: OpenAPI.Document): string {
+export function makeForm(spec: OpenAPI.Document, maxDepth?: number): string {
   let definitions: Definitions;
+  MAX_DEPTH = maxDepth ?? MAX_DEPTH;
   if ('definitions' in spec) {
     definitions = spec.definitions;
   } else if ('components' in spec) {
@@ -82,7 +86,7 @@ function makeDefinition(definitionName: string, definition: Definition): string 
 function makeFieldsBody(definition: Definition, depth: number): string[] {
   const fields: string[] = [];
 
-  if (depth > 2) return fields;
+  if (depth >= MAX_DEPTH) return fields;
   depth++;
 
   const hasProperties = 'properties' in definition && definition.properties;

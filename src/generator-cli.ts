@@ -30,6 +30,11 @@ async function main(): Promise<void> {
       description: 'Generated file name',
       type: 'string'
     })
+    .option('max-depth', {
+      alias: ['d', 'maxDepth'],
+      description: 'Maximum depth of the generated forms',
+      type: 'number'
+    })
     .help()
     .wrap(null)
     .usage('Generates Angular ReactiveForms from an OpenAPI v2 or v3 spec.\n\n Usage: $0 -i <spec> -o <path>')
@@ -40,7 +45,13 @@ async function main(): Promise<void> {
 
   const spec = await loadSpec(argv['input-spec']);
 
-  const file = makeForm(spec);
+  const maxDepth = argv['max-depth'];
+  if (maxDepth !== undefined && (isNaN(maxDepth) || maxDepth < 1)) {
+    console.error('Error: max-depth must be a number greater than 0');
+    process.exit(1);
+  }
+
+  const file = makeForm(spec, maxDepth);
 
   let fileName = argv['file-name'] || makeFileName(spec) || 'forms.ts';
 
