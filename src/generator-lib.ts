@@ -56,11 +56,11 @@ export function makeForm(spec: OpenAPI.Document, maxDepth?: number): string {
 
   let body = NEEDED_IMPORTS + '\n\n';
 
-  Object.keys(definitions).forEach(key => {
-    if (definitions?.[key]) {
-      body += makeDefinition(key, definitions[key]);
+  for (const [key, value] of Object.entries(definitions)) {
+    if (value) {
+      body += makeDefinition(key, value);
     }
-  });
+  }
 
   return prettier.format(body, { parser: 'typescript', singleQuote: true });
 }
@@ -84,45 +84,53 @@ function makeDefinition(definitionName: string, definition: Definition): string 
  * @returns An array of strings representing the form fields.
  */
 function makeFieldsBody(definition: Definition, depth: number): string[] {
-  const fields: string[] = [];
-
-  if (depth >= MAX_DEPTH) return fields;
+  if (depth >= MAX_DEPTH) return [];
   depth++;
+  return [...extractPropertiesFields(definition, depth), ...extractAllOfFields(definition, depth)];
+}
 
-  const hasProperties = 'properties' in definition && definition.properties;
-  if (hasProperties && definition.properties) {
-    // Process each property in the definition
-    Object.keys(definition.properties).forEach(fieldName => {
-      const field = makeField(
-        fieldName,
-        definition.properties?.[fieldName],
-        !!definition.required?.includes(fieldName),
-        depth
-      );
-      if (field !== '') {
-        fields.push(field);
-      }
-    });
+/**
+ * Extracts fields from the properties of a given OpenAPI definition.
+ * @param definition - The OpenAPI definition object.
+ * @param depth - The current depth of recursion.
+ * @returns An array of strings representing the form fields.
+ */
+function extractPropertiesFields(definition: Definition, depth: number): string[] {
+  if (!('properties' in definition) || !definition.properties) return [];
+  const fields: string[] = [];
+  for (const [fieldName, fieldValue] of Object.entries(definition.properties)) {
+    const field = makeField(fieldName, fieldValue, !!definition.required?.includes(fieldName), depth);
+    if (field !== '') {
+      fields.push(field);
+    }
   }
+  return fields;
+}
 
-  // Handle allOf by merging properties from referenced schemas
-  const hasAllOf = 'allOf' in definition && Array.isArray(definition.allOf);
-  if (hasAllOf && definition.allOf) {
-    definition.allOf.forEach((subSchema: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject) => {
-      // If the subSchema is a reference, resolve it from definitions
-      if ('$ref' in subSchema) {
-        const refName = subSchema.$ref.split('/').pop() as string;
-        const refSchema =
-          (definition as any).definitions?.[refName] || (definition as any).components?.schemas?.[refName];
-        if (refSchema) {
-          fields.push(...makeFieldsBody(refSchema, depth));
-        }
-      } else {
-        fields.push(...makeFieldsBody(subSchema, depth));
+/**
+ * Extracts fields from the allOf properties of a given OpenAPI definition.
+ * @param definition - The OpenAPI definition object.
+ * @param depth - The current depth of recursion.
+ * @returns An array of strings representing the form fields.
+ */
+function extractAllOfFields(definition: Definition, depth: number): string[] {
+  if (!('allOf' in definition) || !Array.isArray(definition.allOf)) return [];
+  const fields: string[] = [];
+  for (const subSchema of definition.allOf) {
+    if ('$ref' in subSchema) {
+      const refName = subSchema.$ref.split('/').pop() as string;
+      const refSchema =
+        (definition as any).definitions?.[refName] || (definition as any).components?.schemas?.[refName];
+      if (refSchema) {
+        fields.push(...makeFieldsBody(refSchema, depth));
       }
-    });
+    } else if ('type' in subSchema && subSchema.type === 'object') {
+      subSchema.required = (definition as OpenAPIV3.SchemaObject).required;
+      fields.push(...makeFieldsBody(subSchema, depth));
+    } else {
+      fields.push(...makeFieldsBody(subSchema, depth));
+    }
   }
-
   return fields;
 }
 
