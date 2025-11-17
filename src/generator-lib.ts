@@ -73,7 +73,7 @@ export function makeForm(spec: OpenAPI.Document, maxDepth?: number): string {
  */
 function makeDefinition(definitionName: string, definition: Definition): string {
   return `export const ${camelcase(definitionName)}Form = () => new FormGroup({
-      ${makeFieldsBody(definition, 0)}
+      ${makeFieldsBody({ ...definition }, 0)}
     });\n`;
 }
 
@@ -116,16 +116,18 @@ function extractPropertiesFields(definition: Definition, depth: number): string[
 function extractAllOfFields(definition: Definition, depth: number): string[] {
   if (!('allOf' in definition) || !Array.isArray(definition.allOf)) return [];
   const fields: string[] = [];
+  const definitionRequired = (definition as OpenAPIV3.SchemaObject).required ?? [];
   for (const subSchema of definition.allOf) {
     if ('$ref' in subSchema) {
       const refName = subSchema.$ref.split('/').pop() as string;
       const refSchema =
         (definition as any).definitions?.[refName] || (definition as any).components?.schemas?.[refName];
       if (refSchema) {
+        refSchema.required = [...refSchema.required, ...definitionRequired];
         fields.push(...makeFieldsBody(refSchema, depth));
       }
     } else if ('type' in subSchema && subSchema.type === 'object') {
-      subSchema.required = (definition as OpenAPIV3.SchemaObject).required;
+      subSchema.required = [...(subSchema.required ?? []), ...definitionRequired];
       fields.push(...makeFieldsBody(subSchema, depth));
     } else {
       fields.push(...makeFieldsBody(subSchema, depth));
