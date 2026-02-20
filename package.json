@@ -1,7 +1,8 @@
 {
   "name": "@jmm-devkit/ngx-form-generator",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Generates an Angular ReactiveForm from a Swagger or OpenAPI definition",
+  "type": "module",
   "main": "dist/generator-lib.js",
   "repository": "github:jmm-devkit/ngx-form-generator",
   "bin": {
@@ -33,8 +34,10 @@
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^12.1.0",
+    "@types/yargs": "^17.0.35",
     "camelcase": "^9.0.0",
     "openapi-types": "^12.1.3",
-    "prettier": "^3.8.1"
+    "prettier": "^3.8.1",
+    "yargs": "^18.0.0"
   }
 }

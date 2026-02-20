@@ -20,9 +20,10 @@ import {
   type Rule,
   type Definitions,
   type SchemaProperty,
-} from './rules';
-import * as SwaggerParser from '@apidevtools/swagger-parser';
+} from './rules.js';
 import { type OpenAPI, OpenAPIV3 } from 'openapi-types';
+
+import SwaggerParser from '@apidevtools/swagger-parser';
 
 const DEFAULT_RULES = [requiredRule, patternRule, minLengthRule, maxLengthRule, emailRule, minimumRule, maximumRule];
 
@@ -265,7 +266,6 @@ export function makeFileName(swagger: OpenAPI.Document): string | undefined {
  * @returns A promise that resolves to the dereferenced OpenAPI document.
  */
 export async function loadSpec(fileOrUrlPath: string): Promise<OpenAPI.Document> {
-  const parser = new SwaggerParser();
 
-  return parser.dereference(fileOrUrlPath);
+  return SwaggerParser.dereference(fileOrUrlPath);
 }

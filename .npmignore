@@ -1,5 +1,4 @@
 **
 !dist/**/*
-dist/generator-cli.d.ts
 dist/*.spec.js
 dist/*.spec.d.ts

@@ -8,18 +8,19 @@
  * Copyright (c) 2020 Verizon
  */
 
-import { saveFile } from './file-utils';
-import { makeForm, makeFileName, loadSpec } from './generator-lib';
+import { saveFile } from './file-utils.js';
+import { makeForm, makeFileName, loadSpec } from './generator-lib.js';
 import { join } from 'node:path';
-const yargs = require('yargs');
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
 
 async function main(): Promise<void> {
-  const argv = yargs
+  const argv = await yargs(hideBin(process.argv))
     .option('input-spec', {
       alias: ['i', 'swaggerUrl'],
       description: 'Location of the OpenAPI spec as a URL or file path',
       type: 'string',
-      require: true,
+      demandOption: true,
     })
     .option('output', {
       alias: ['o', 'outDir'],
@@ -39,10 +40,11 @@ async function main(): Promise<void> {
     .help()
     .wrap(null)
     .usage('Generates Angular ReactiveForms from an OpenAPI v2 or v3 spec.\n\n Usage: $0 -i <spec> -o <path>')
-    .example('ngx-form-generator -i https://petstore.swagger.io/v2/swagger.json -o petstore-forms')
-    .example('ngx-form-generator -i https://petstore.swagger.io/v2/swagger.yaml -o petstore-forms')
-    .example('npx ngx-form-generator -i swagger.json -o project/form/src/lib')
-    .alias('help', 'h').argv;
+    .example('ngx-form-generator -i https://petstore.swagger.io/v2/swagger.json -o petstore-forms', 'Generate forms from a remote JSON spec')
+    .example('ngx-form-generator -i https://petstore.swagger.io/v2/swagger.yaml -o petstore-forms', 'Generate forms from a remote YAML spec')
+    .example('npx ngx-form-generator -i swagger.json -o project/form/src/lib', 'Generate forms from a local JSON spec')
+    .alias('help', 'h')
+    .parse();
 
   const spec = await loadSpec(argv['input-spec']);
 
@@ -61,6 +63,7 @@ async function main(): Promise<void> {
   }
 
   saveFile(file, fileName);
+
 }
 
 await main();
