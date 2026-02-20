@@ -8,8 +8,9 @@
  * Copyright (c) 2020 Verizon
  */
 
-import { makeForm, makeFileName, saveFile, loadSpec } from './generator-lib';
-import { join } from 'path';
+import { saveFile } from './file-utils';
+import { makeForm, makeFileName, loadSpec } from './generator-lib';
+import { join } from 'node:path';
 const yargs = require('yargs');
 
 async function main(): Promise<void> {
@@ -18,22 +19,22 @@ async function main(): Promise<void> {
       alias: ['i', 'swaggerUrl'],
       description: 'Location of the OpenAPI spec as a URL or file path',
       type: 'string',
-      require: true
+      require: true,
     })
     .option('output', {
       alias: ['o', 'outDir'],
       description: 'Where to write the generated files',
-      type: 'string'
+      type: 'string',
     })
     .option('file-name', {
       alias: ['f', 'outFile'],
       description: 'Generated file name',
-      type: 'string'
+      type: 'string',
     })
     .option('max-depth', {
       alias: ['d', 'maxDepth'],
       description: 'Maximum depth of the generated forms',
-      type: 'number'
+      type: 'number',
     })
     .help()
     .wrap(null)
@@ -46,12 +47,12 @@ async function main(): Promise<void> {
   const spec = await loadSpec(argv['input-spec']);
 
   const maxDepth = argv['max-depth'];
-  if (maxDepth !== undefined && (isNaN(maxDepth) || maxDepth < 1)) {
+  if (maxDepth !== undefined && (Number.isNaN(maxDepth) || maxDepth < 1)) {
     console.error('Error: max-depth must be a number greater than 0');
     process.exit(1);
   }
 
-  const file = makeForm(spec, maxDepth);
+  const file = await makeForm(spec, maxDepth);
 
   let fileName = argv['file-name'] || makeFileName(spec) || 'forms.ts';
 
@@ -59,7 +60,7 @@ async function main(): Promise<void> {
     fileName = join(argv.output, fileName);
   }
 
-  await saveFile(file, fileName);
+  saveFile(file, fileName);
 }
 
-main();
+await main();

@@ -6,8 +6,7 @@
  * Copyright (c) 2020 Verizon
  */
 
-import { Project } from 'ts-morph';
-import prettier from 'prettier';
+import * as prettier from 'prettier';
 import camelcase from 'camelcase';
 import {
   requiredRule,
@@ -17,13 +16,13 @@ import {
   emailRule,
   minimumRule,
   maximumRule,
-  Definition,
-  Rule,
-  Definitions,
-  SchemaProperty
+  type Definition,
+  type Rule,
+  type Definitions,
+  type SchemaProperty,
 } from './rules';
-import SwaggerParser from '@apidevtools/swagger-parser';
-import { OpenAPI, OpenAPIV3 } from 'openapi-types';
+import * as SwaggerParser from '@apidevtools/swagger-parser';
+import { type OpenAPI, OpenAPIV3 } from 'openapi-types';
 
 const DEFAULT_RULES = [requiredRule, patternRule, minLengthRule, maxLengthRule, emailRule, minimumRule, maximumRule];
 
@@ -39,13 +38,13 @@ let MAX_DEPTH = 2;
  * @param maxDepth - The maximum depth of the generated forms.
  * @returns A string representing the generated forms.
  */
-export function makeForm(spec: OpenAPI.Document, maxDepth?: number): string {
+export async function makeForm(spec: OpenAPI.Document, maxDepth?: number): Promise<string> {
   let definitions: Definitions;
   MAX_DEPTH = maxDepth ?? MAX_DEPTH;
   if ('definitions' in spec) {
     definitions = spec.definitions;
   } else if ('components' in spec) {
-    definitions = spec.components?.schemas;
+    definitions = spec.components?.schemas as Definitions;
   } else {
     throw new Error('Cannot find schemas/definitions');
   }
@@ -62,7 +61,7 @@ export function makeForm(spec: OpenAPI.Document, maxDepth?: number): string {
     }
   }
 
-  return prettier.format(body, { parser: 'typescript', singleQuote: true });
+  return await prettier.format(body, { parser: 'typescript', singleQuote: true });
 }
 
 /**
@@ -170,7 +169,7 @@ function makeArrayField(
   fieldName: string,
   property: OpenAPIV3.ArraySchemaObject,
   isRequired: boolean,
-  depth: number
+  depth: number,
 ): string {
   const itemDefinition = property.items as OpenAPIV3.SchemaObject;
   const minItems = property['minItems'] ?? 1;
@@ -183,8 +182,8 @@ function makeArrayField(
   } else {
     const _dummyProps = {
       properties: {
-        dummy: itemDefinition
-      }
+        dummy: itemDefinition,
+      },
     };
     const value = 'default' in _dummyProps.properties.dummy ? `'${_dummyProps.properties.dummy.default}'` : null;
     for (let i = 1; i <= minItems; i++) {
@@ -228,8 +227,8 @@ function makePrimitiveField(fieldName: string, property: SchemaProperty, isRequi
  */
 function makeFieldRules(fieldName: string, property: SchemaProperty, isRequired: boolean): string {
   return rules
-    .map(rule => rule(fieldName, property, isRequired))
-    .filter(item => item != '')
+    .map((rule) => rule(fieldName, property, isRequired))
+    .filter((item) => item != '')
     .join();
 }
 
@@ -258,18 +257,6 @@ export function makeFileName(swagger: OpenAPI.Document): string | undefined {
   if (swagger.info?.title) {
     return `${camelcase(swagger.info.title)}.ts`;
   }
-}
-
-/**
- * Saves the generated file using ts-morph.
- * @param file - The content of the file to save.
- * @param fileName - The name of the file to save.
- * @returns A promise that resolves when the file is saved.
- */
-export async function saveFile(file: string, fileName: string): Promise<void> {
-  const project = new Project();
-  project.createSourceFile(fileName, file, { overwrite: true });
-  return project.save();
 }
 
 /**

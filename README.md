@@ -14,8 +14,6 @@ Generates an Angular ReactiveForm from a Swagger or OpenAPI definition.
 
 Validation rules should have a single source of truth. These rules should be exposed to consumers to apply them. By doing this we can be sure that the same rules for UI validation are enforced at the API layer.
 
-[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
-
 ## Install
 
 ```bash
