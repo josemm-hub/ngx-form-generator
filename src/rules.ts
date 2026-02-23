@@ -30,7 +30,7 @@ export type Definition = OpenAPIV2.DefinitionsObject | OpenAPIV3.ReferenceObject
 export type SchemaProperty = OpenAPIV2.SchemaObject | OpenAPIV3.SchemaObject;
 
 function hasMetadata(fieldName: string, property: SchemaProperty, metadataName: string): boolean {
-  return property.hasOwnProperty(metadataName);
+  return Object.hasOwn(property, metadataName);
 }
 
 function abstractRule(fieldName: string, property: SchemaProperty, ruleName: keyof Property): string {

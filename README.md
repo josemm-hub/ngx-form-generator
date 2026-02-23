@@ -3,6 +3,7 @@
 ## Fixes
 
 - Fixed the handling of the `properties` property when generating fields from the OpenAPI definition. Now, if `properties` is `undefined`, an empty array is returned, allowing the rest of the code to execute correctly.
+- Added JSON parser for handling big integers.
 
 ## Improvements
 

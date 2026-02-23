@@ -1,8 +1,8 @@
 {
   "include": ["./src/"],
   "compilerOptions": {
-    "target": "es2017",
-    "module": "es2022",
+    "target": "esnext",
+    "module": "nodenext",
     "types": ["node"],
     "outDir": "./dist/",
     "declaration": true,
@@ -12,7 +12,7 @@
     "jsx": "react-jsx",
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "moduleDetection": "force",
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true
