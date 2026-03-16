@@ -41,8 +41,15 @@ export function requiredRule(fieldName: string, property: SchemaProperty, isRequ
   return isRequired ? `Validators.required` : '';
 }
 
-export function patternRule(fieldName: string, property: SchemaProperty): string {
-  return hasMetadata(fieldName, property, 'pattern') ? `Validators.pattern(/${property['pattern']}/)` : '';
+export function patternRule(fieldName: string, property: SchemaProperty) {
+  return hasMetadata(fieldName, property, 'pattern')
+    ? `Validators.pattern(/${property['pattern']
+        ?.replaceAll('/', '\\/')
+        .replaceAll('\r', '\\r')
+        .replaceAll('\n', '\\n')
+        .replaceAll('\u2028', '\\u2028')
+        .replaceAll('\u2029', '\\u2029')}/)`
+    : '';
 }
 
 export function minLengthRule(fieldName: string, property: SchemaProperty): string {
